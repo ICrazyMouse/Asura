@@ -19,7 +19,10 @@ public class Result {
         this.code = Result.SUCCESS_CODE;
         this.message = "请求成功";
     }
-
+    public Result() {
+        this.code = Result.SUCCESS_CODE;
+        this.message = "请求成功";
+    }
     public Result(int code, String message, Object data) {
         this.code = code;
         this.message = message;

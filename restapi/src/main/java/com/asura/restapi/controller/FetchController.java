@@ -1,9 +1,13 @@
 package com.asura.restapi.controller;
 
 import com.asura.restapi.annotations.Fetcher;
+import com.asura.restapi.api.IFetcher;
 import com.asura.restapi.controller.params.response.Result;
+import com.asura.restapi.model.TaxUser;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -24,6 +28,8 @@ import java.util.Map;
 @RequestMapping(value = "/")
 public class FetchController implements ApplicationContextAware {
 
+    Logger logger = LoggerFactory.getLogger(getClass());
+
     private static Map<String, Object> fetcherMap = Collections.synchronizedMap(new HashMap<String, Object>());
 
     @Override
@@ -40,5 +46,38 @@ public class FetchController implements ApplicationContextAware {
     @RequestMapping(value = "/fetchers", method = RequestMethod.GET)
     public Result getAllFetchers() {
         return new Result(fetcherMap);
+    }
+    @ApiOperation("个税页面初始化")
+    @RequestMapping(value = "/asura/tax/init", method = RequestMethod.POST)
+    public Result taxPageInit(TaxUser taxUser) {
+
+        String cityCode= taxUser.getCityCode();
+        logger.info("taxLogin:city" + cityCode);
+        return ((IFetcher)fetcherMap.get(cityCode)).pageInit(taxUser);
+    }
+
+
+    @ApiOperation("个税登录")
+    @RequestMapping(value = "/asura/tax/login", method = RequestMethod.POST)
+    public Result taxLogin(TaxUser taxUser) {
+        String cityCode= taxUser.getCityCode();
+        logger.info("taxLogin:city" + cityCode);
+        return ((IFetcher)fetcherMap.get(cityCode)).login(taxUser);
+    }
+
+    @ApiOperation("个税刷新验证码")
+    @RequestMapping(value = "/asura/tax/refreshCaptcha", method = RequestMethod.POST)
+    public Result taxRefreshCaptcha(TaxUser taxUser) {
+        String cityCode= taxUser.getCityCode();
+        logger.info("taxLogin:city" + cityCode);
+        return ((IFetcher)fetcherMap.get(cityCode)).refreshCaptcha(taxUser);
+    }
+
+    @ApiOperation("个税刷新短信验证码")
+    @RequestMapping(value = "/asura/tax/refreshSms", method = RequestMethod.POST)
+    public Result taxRefreshSms(TaxUser taxUser) {
+        String cityCode= taxUser.getCityCode();
+        logger.info("taxLogin:city" + cityCode);
+        return ((IFetcher)fetcherMap.get(cityCode)).refreshSms(taxUser);
     }
 }
