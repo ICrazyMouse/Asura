@@ -16,6 +16,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.net.URLEncoder;
+import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -38,12 +39,8 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
     // 密码rsa加密
     protected static final String PWD_RAS_URL ="http://127.0.0.1:8080/shanghai/sh_rsa.html?item=itemval&key=keyval";
 
-
     //缓存
     protected MemcacheClient memcacheClient = MemcacheClient.getInstance();
-
-    // 2 表示需要图片验证码
-
 
     @Override
     public void logout(JSONObject params) throws Exception {
@@ -135,7 +132,7 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
         String checkYzmUrlR = CHECK_CATTCHA_URL + taxUser.getCaptcha();
         loginContext.setUri(checkYzmUrlR);
         String checkResult = doPost(loginContext);
-        logger.info("验证验证码结果**************"+ checkResult);
+        logger.info(taskId + "验证验证码结果**************"+ checkResult);
 
         JSONObject captchaCheck = JSONObject.parseObject(checkResult);
 
@@ -151,9 +148,15 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
             return result;
         }
 
+        String keyEncoded = "rsaPublicKey";
+        try {
+            keyEncoded =  URLEncoder.encode(rsaPublicKey,"utf-8");
+        }catch (Exception e){
+            logger.error(taskId + ":" + e.getMessage(), e);
+        }
         String url = PWD_RAS_URL.replace("itemval",taxUser.getPwd())
-                .replace("keyval", URLEncoder.encode(rsaPublicKey));
-        logger.info("PWD_RAS_URL:"  + url);
+                .replace("keyval", keyEncoded);
+        logger.info(taskId + "PWD_RAS_URL:"  + url);
         String mm = getSignPwd(url);
 
         //
@@ -191,15 +194,15 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
         headers.put("Accept-Encodin","gzip, deflate, br");
         headers.put("Accept-Language", "zh-CN,zh;q=0.8,en;q=0.6");
 
-        logger.info("开始登录************");
+        logger.info(taskId + "开始登录************");
 
         String loginResult = httpPostPayload(loginContext,JSONObject.toJSONString(loginParams) );
-        logger.info("loginResult:" + loginResult);
+        logger.info(taskId + "loginResult:" + loginResult);
 
         JSONObject login = JSONObject.parseObject(loginResult);
 
         if ("SUCCESS".equals(login.getString("type")) ){
-            logger.info("登录成功********************");
+            logger.info(taskId + "登录成功********************");
         } else {
             result.setCode(Result.ERROR_CODE);
             result.setMessage(login.getString("content"));
@@ -207,8 +210,13 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
             return result;
         }
         long take = System.currentTimeMillis() - start;
-        logger.info("shanghai login:end" + take);
+        logger.info(taskId + "shanghai login:end" + take);
         result.setMessage("登录成功,正在解析:");
+
+        //
+        ParseTaxInfo(loginContext);
+
+        //
         return result;
     }
 
@@ -280,5 +288,104 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
             }
         }
         return signPwd;
+    }
+
+    /**
+     * 登录成功之后 解析个税信息的前置请求
+     */
+    private void PreActionForParseTaxInfo(LoginContext loginContext){
+        Map<String, String> headers = loginContext.getRequestHeaders();
+
+        // 进入主页
+        String homeUrl = "https://gr.tax.sh.gov.cn/portals/web/biz/home";
+
+        loginContext.setUri(homeUrl);
+        headers.remove("Origin");
+        String home = doPost(loginContext);
+//        logger.debug("home:" + home);
+
+        headers.put("Referer", "https://gr.tax.sh.gov.cn/portals/web/biz/home");
+        headers.put("Origin", "https://gr.tax.sh.gov.cn");
+
+        //https://gr.tax.sh.gov.cn/portals/web/biz/getMyMsgCount
+
+        loginContext.setUri("https://gr.tax.sh.gov.cn/portals/web/biz/getMyMsgCount");
+        String getMyMsgCount = doPost(loginContext);
+        logger.info("getMyMsgCount:" + getMyMsgCount);
+
+
+        // https://gr.tax.sh.gov.cn/portals/web/biz/getMySysMsgs
+        loginContext.setUri("https://gr.tax.sh.gov.cn/portals/web/biz/getMySysMsgs");
+        String getMySysMsgs = doPost(loginContext);
+        logger.info("getMySysMsgs:" + getMySysMsgs);
+
+        //https://gr.tax.sh.gov.cn/portals/web/biz/checkMb
+        loginContext.setUri("https://gr.tax.sh.gov.cn/portals/web/biz/checkMb");
+        String checkMb = doPost(loginContext);
+        logger.info("checkMb:" + checkMb);
+
+        //https://gr.tax.sh.gov.cn/portals/web/biz/checkMmczzt
+        loginContext.setUri("https://gr.tax.sh.gov.cn/portals/web/biz/checkMmczzt");
+        String checkMmczzt = doPost(loginContext);
+        logger.info("checkMmczzt:" + checkMmczzt);
+
+        logger.info("个税清单申请:start---------------------");
+
+        // 个税清单申请
+        // 主页
+        headers.clear();
+        headers.put("Accept-Encoding","gzip, deflate, br");
+        headers.put("Accept-Language", "zh-CN,zh;q=0.8,en;q=0.6");
+        headers.put("Upgrade-Insecure-Requests","1");
+        headers.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
+        headers.put("Host","gr.tax.sh.gov.cn");
+        loginContext.setUri("https://gr.tax.sh.gov.cn/wsz-ww-web/web/shanghai/taxInfo");
+
+        String selfTaxPage = doGet(loginContext);
+
+//        logger.debug(selfTaxPage);
+
+        // https://gr.tax.sh.gov.cn/wsz-ww-web/web/help/rdwt?subMkDm=001&_=1509823382469
+        logger.info("subMkDm:start **********");
+        headers.put("Referer","https://gr.tax.sh.gov.cn/wsz-ww-web/web/shanghai/taxInfo");
+        loginContext.setUri("https://gr.tax.sh.gov.cn/wsz-ww-web/web/help/rdwt?subMkDm=001&_=" + System.currentTimeMillis());
+        String rdwt = doGet(loginContext);
+        logger.info(rdwt);
+
+    }
+
+    /**
+     * 解析当前日期前十年的
+     * @param loginContext
+     */
+    private void ParseTaxInfo(LoginContext loginContext){
+        //
+        PreActionForParseTaxInfo(loginContext);
+        Calendar cl = Calendar.getInstance();
+        cl.set(Calendar.MONTH,cl.get(Calendar.MONTH) + 1);
+
+        int nowYear = cl.get(Calendar.YEAR);
+        int nowMonth = cl.get(Calendar.MONTH);
+        String search_from = (nowYear - 10) + "-" + nowMonth + "-01";
+        String search_end = nowYear + "-" + nowMonth + "-01";
+
+        String querySelfTax = "https://gr.tax.sh.gov.cn/wsz-ww-web/web/shanghai/taxInfo/search?" +
+                "skssqq=" + search_from + "&skssqz=" + search_end + "&_=" + System.currentTimeMillis();
+
+        loginContext.setUri(querySelfTax);
+
+        loginContext.getRequestHeaders().put("Refer", "https://gr.tax.sh.gov.cn/wsz-ww-web/web/shanghai/taxInfo");
+        String queryResult = doGet(loginContext);
+
+        logger.info(queryResult);
+
+    }
+    /**
+     * 登录成功之后 解析用户信息
+     * https://gr.tax.sh.gov.cn/portals/web/biz/personalInfo/personalInfoPage
+     * https://gr.tax.sh.gov.cn/wssb-app-ww-web/web/jcxxb/grxx
+     */
+    private void ParseTaxUserInfo(){
+
     }
 }
