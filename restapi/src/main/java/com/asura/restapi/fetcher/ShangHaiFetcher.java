@@ -1,10 +1,12 @@
 package com.asura.restapi.fetcher;
 
+import com.alibaba.druid.util.StringUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.asura.restapi.annotations.Fetcher;
 import com.asura.restapi.api.IFetcher;
 import com.asura.restapi.common.AbstractHttpService;
 import com.asura.restapi.common.LoginContext;
+import com.asura.restapi.common.MemcacheClient;
 import com.asura.restapi.controller.params.response.Result;
 import com.asura.restapi.model.TaxUser;
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -12,13 +14,10 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 
 import java.net.URLEncoder;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by lichuanshun on 2017/11/18.
@@ -40,15 +39,21 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
     protected static final String PWD_RAS_URL ="http://127.0.0.1:8080/shanghai/sh_rsa.html?item=itemval&key=keyval";
 
 
-    @Autowired
-    RedisTemplate redisTemplate;
+    //缓存
+    protected MemcacheClient memcacheClient = MemcacheClient.getInstance();
+
+    // 2 表示需要图片验证码
+
+
     @Override
     public void logout(JSONObject params) throws Exception {
+        logger.info("logout--------");
 
     }
 
     @Override
     public TaxUser loginAndParseInfo(JSONObject params) throws Exception {
+        logger.info("loginAndParseInfo--------");
         return null;
     }
 
@@ -83,13 +88,18 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
         //
         String captcha = refreshCaptcha(loginContext,taskId);
 
+        logger.info("captcha:" + captcha);
+
         // 缓存cookie
         String redisCookieForShangHaiLogin = taskId + "shanghailogin";
-        redisTemplate.opsForValue().set(redisCookieForShangHaiLogin , loginContext.getCookieStore(), 30 * 60, TimeUnit.SECONDS);
+//        redisTemplate.opsForValue().set(redisCookieForShangHaiLogin , loginContext.getCookieStore(), 30 * 60, TimeUnit.SECONDS);
+        boolean cookieSave = memcacheClient.set(redisCookieForShangHaiLogin, loginContext.getCookieStore());
+        logger.info("cookieSave:" + cookieSave);
+
         // 缓存公钥
         String redisKeyForShangHaiRsaKey = taskId + "shanghairsapublickey";
-        redisTemplate.opsForValue().set(redisKeyForShangHaiRsaKey, rsaPublicKey, 30 * 60, TimeUnit.SECONDS);
-
+        boolean keySave = memcacheClient.set(redisKeyForShangHaiRsaKey, rsaPublicKey);
+        logger.info("keySave:" + keySave);
         // 返回数据
         JSONObject data = new JSONObject();
         data.put("taskId", taskId);
@@ -111,29 +121,33 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
         logger.info("shanghai login:start" + taskId);
         long start = System.currentTimeMillis();
         Result result = new Result();
+        System.setProperty ("jsse.enableSNIExtension", "false");
 
         String redisCookieForShangHaiLogin = taskId + "shanghailogin";
         String redisKeyForShangHaiRsaKey = taskId + "shanghairsapublickey";
 
-        String rsaPublicKey = (String) redisTemplate.opsForValue().get(redisKeyForShangHaiRsaKey);
+        String rsaPublicKey = (String)memcacheClient.get(redisKeyForShangHaiRsaKey);
         //初始化
-        BasicCookieStore cookieStore = (BasicCookieStore)redisTemplate.opsForValue().get(redisCookieForShangHaiLogin);
+//        BasicCookieStore cookieStore = (BasicCookieStore)redisTemplate.opsForValue().get(redisCookieForShangHaiLogin);
+        BasicCookieStore cookieStore = (BasicCookieStore)memcacheClient.get(redisCookieForShangHaiLogin);
         LoginContext loginContext = createLoginContext(cookieStore);
         // 验证验证码
         String checkYzmUrlR = CHECK_CATTCHA_URL + taxUser.getCaptcha();
         loginContext.setUri(checkYzmUrlR);
         String checkResult = doPost(loginContext);
-        logger.info("验证验证码结果**************", checkResult);
+        logger.info("验证验证码结果**************"+ checkResult);
 
         JSONObject captchaCheck = JSONObject.parseObject(checkResult);
 
         // 验证码登录失败
-        if (!"SUCCESS".equals(captchaCheck.getString("type"))){
-            result.setCode(2);
+        if (!"SUCCESS".equals(captchaCheck.getString("type")) || !StringUtils.isEmpty(captchaCheck.getString("data"))){
+            result.setCode(Result.NEED_CAPTCHA);
             result.setMessage(captchaCheck.getString("content"));
             JSONObject tempDate = new JSONObject();
             tempDate.put("taskId", taskId);
             tempDate.put("captcha", refreshCaptcha(loginContext,taskId));
+            result.setData(tempDate);
+            result.setMessage(captchaCheck.getString("data"));
             return result;
         }
 
@@ -180,12 +194,17 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
         logger.info("开始登录************");
 
         String loginResult = httpPostPayload(loginContext,JSONObject.toJSONString(loginParams) );
-        logger.info("loginResult:",loginResult);
+        logger.info("loginResult:" + loginResult);
 
         JSONObject login = JSONObject.parseObject(loginResult);
 
-        if ("SUCCESS".equals(login.getString("type"))){
+        if ("SUCCESS".equals(login.getString("type")) ){
             logger.info("登录成功********************");
+        } else {
+            result.setCode(Result.ERROR_CODE);
+            result.setMessage(login.getString("content"));
+
+            return result;
         }
         long take = System.currentTimeMillis() - start;
         logger.info("shanghai login:end" + take);
@@ -237,8 +256,7 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
 
 
     private String creatTaskId(){
-//        return  String.valueOf(System.currentTimeMillis());
-
+        // TODO: 2017/11/19
         return "1";
     }
 
