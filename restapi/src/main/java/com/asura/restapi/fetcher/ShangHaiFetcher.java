@@ -119,7 +119,6 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
         long start = System.currentTimeMillis();
         Result result = new Result();
         System.setProperty ("jsse.enableSNIExtension", "false");
-
         String redisCookieForShangHaiLogin = taskId + "shanghailogin";
         String redisKeyForShangHaiRsaKey = taskId + "shanghairsapublickey";
 
