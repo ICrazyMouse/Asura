@@ -7,17 +7,18 @@ import com.asura.restapi.common.AbstractHttpService;
 import com.asura.restapi.common.LoginContext;
 import com.asura.restapi.controller.params.response.Result;
 import com.asura.restapi.model.TaxUser;
-import com.asura.restapi.redis.RedisUtils;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.net.URLEncoder;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by lichuanshun on 2017/11/18.
@@ -40,7 +41,7 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
 
 
     @Autowired
-    RedisUtils redisUtils;
+    RedisTemplate redisTemplate;
     @Override
     public void logout(JSONObject params) throws Exception {
 
@@ -84,10 +85,10 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
 
         // 缓存cookie
         String redisCookieForShangHaiLogin = taskId + "shanghailogin";
-        redisUtils.set(redisCookieForShangHaiLogin , loginContext.getCookieStore());
+        redisTemplate.opsForValue().set(redisCookieForShangHaiLogin , loginContext.getCookieStore(), 30 * 60, TimeUnit.SECONDS);
         // 缓存公钥
         String redisKeyForShangHaiRsaKey = taskId + "shanghairsapublickey";
-        redisUtils.set(redisKeyForShangHaiRsaKey, rsaPublicKey);
+        redisTemplate.opsForValue().set(redisKeyForShangHaiRsaKey, rsaPublicKey, 30 * 60, TimeUnit.SECONDS);
 
         // 返回数据
         JSONObject data = new JSONObject();
@@ -114,9 +115,9 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
         String redisCookieForShangHaiLogin = taskId + "shanghailogin";
         String redisKeyForShangHaiRsaKey = taskId + "shanghairsapublickey";
 
-        String rsaPublicKey = (String) redisUtils.get(redisKeyForShangHaiRsaKey);
+        String rsaPublicKey = (String) redisTemplate.opsForValue().get(redisKeyForShangHaiRsaKey);
         //初始化
-        BasicCookieStore cookieStore = (BasicCookieStore)redisUtils.get(redisCookieForShangHaiLogin);
+        BasicCookieStore cookieStore = (BasicCookieStore)redisTemplate.opsForValue().get(redisCookieForShangHaiLogin);
         LoginContext loginContext = createLoginContext(cookieStore);
         // 验证验证码
         String checkYzmUrlR = CHECK_CATTCHA_URL + taxUser.getCaptcha();
