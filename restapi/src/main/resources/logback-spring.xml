@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <logger name="org.springframework.web" level="INFO"/>
+
+    <springProperty scope="context" name="springAppName" source="spring.application.name"/>
+    <springProperty scope="context" name="projectHost" source="HOST"/>
+    <springProperty scope="context" name="logstash_destination" source="logstash.destination"/>
+    <springProperty scope="context" name="springProfilesActive" source="spring.profiles.active"/>
+
+    <springProfile name="dev">
+        <logger name="com" level="DEBUG">
+        </logger>
+    </springProfile>
+    <springProfile name="pro">
+        <logger name="com" level="INFO">
+        </logger>
+    </springProfile>
+</configuration>
