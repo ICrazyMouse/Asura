@@ -378,9 +378,13 @@ public abstract class AbstractHttpService<M> implements BaseService {
      * @throws Exception
      */
     protected String saveYZM(String cuserid, CloseableHttpResponse response) throws Exception {
-        if (!OSUtil.isLinux()) {
-            return saveImageFile(cuserid, response);
-        }
+        // TODO: 2017/11/18 暂时注释
+//        if (!OSUtil.isLinux()) {
+//            return saveImageFile(cuserid, response);
+//        }
+
+//        saveImageFile(cuserid, response);
+
         HttpEntity entity = response.getEntity();
         byte[] bytes = EntityUtils.toByteArray(entity);
         closeAndReturnHttpConnection(response);

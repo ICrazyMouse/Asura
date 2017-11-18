@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <script type="text/javascript">
+        var SYS = {
+            ctx: '/portals',
+            path: '/portals/web/',
+            stc: '/portals/assets/',
+            file: '/portals/files/',
+            dlmPlaceholder: '用户名/邮箱/手机号码',
+            openMsgCenter:'true'
+        };
+    </script>
+    <script src="rsa.js" type="text/javascript"></script>
+    <title>Title</title>
+</head>
+<body onload="doEncry()">
+<input type="hidden" id="result">
+</body>
+<script>
+    function getQueryString(name) {
+        var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return unescape(r[2]);
+        }
+        return null;
+    }
+    function doEncry(){
+
+        var item = getQueryString("item");
+        var rsaPubKey = getQueryString("key");
+        var encrypt = new JSEncrypt();
+        encrypt.setPublicKey(rsaPubKey);
+
+        var result= encrypt.encrypt(item);
+        document.getElementById("result").value = result;
+    }
+</script>
+</html>

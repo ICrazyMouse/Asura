@@ -36,7 +36,7 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
     // 登录
     protected static final String LOGIN_URL = "https://gr.tax.sh.gov.cn//portals/web/oauth2/login";
     // 密码rsa加密
-    protected static final String PWD_RAS_URL ="http://127.0.0.1:18080/ctadmin/tax/sh_rsa.html?item=itemval&key=keyval";
+    protected static final String PWD_RAS_URL ="http://127.0.0.1:8080/shanghai/sh_rsa.html?item=itemval&key=keyval";
 
 
     @Autowired
@@ -76,15 +76,11 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
         String rsaPublicKey = getRsaPublicKeyFromInitPage(initResult);
 
         // 获取验证码
-        Map<String, String> headers = loginContext.getRequestHeaders();
-        headers.put("Referer", PAGE_INIT_URL);
-        String yzmUrl = REFRESH_CAPTCHA_URL + Math.random();
-        loginContext.setUri(yzmUrl);
 
         // 初始化taskid
         String taskId = creatTaskId();
         //
-        String captcha = doYzm(taskId, yzmUrl,loginContext);
+        String captcha = refreshCaptcha(loginContext,taskId);
 
         // 缓存cookie
         String redisCookieForShangHaiLogin = taskId + "shanghailogin";
@@ -126,7 +122,19 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
         String checkYzmUrlR = CHECK_CATTCHA_URL + taxUser.getCaptcha();
         loginContext.setUri(checkYzmUrlR);
         String checkResult = doPost(loginContext);
-        System.out.println("验证验证码结果**************");
+        logger.info("验证验证码结果**************", checkResult);
+
+        JSONObject captchaCheck = JSONObject.parseObject(checkResult);
+
+        // 验证码登录失败
+        if (!"SUCCESS".equals(captchaCheck.getString("type"))){
+            result.setCode(2);
+            result.setMessage(captchaCheck.getString("content"));
+            JSONObject tempDate = new JSONObject();
+            tempDate.put("taskId", taskId);
+            tempDate.put("captcha", refreshCaptcha(loginContext,taskId));
+            return result;
+        }
 
         String url = PWD_RAS_URL.replace("itemval",taxUser.getPwd())
                 .replace("keyval", URLEncoder.encode(rsaPublicKey));
@@ -180,6 +188,7 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
         }
         long take = System.currentTimeMillis() - start;
         logger.info("shanghai login:end" + take);
+        result.setMessage("登录成功,正在解析:");
         return result;
     }
 
@@ -217,13 +226,12 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
      *
      * @return
      */
-    private String refreshCaptcha(LoginContext loginContext, String pwd){
-        String encryptedPwd = "";
+    private String refreshCaptcha(LoginContext loginContext, String taskId){
         Map<String, String> headers = loginContext.getRequestHeaders();
         headers.put("Referer", PAGE_INIT_URL);
         String yzmUrl = REFRESH_CAPTCHA_URL + Math.random();
         loginContext.setUri(yzmUrl);
-        return encryptedPwd;
+        return doYzm(taskId, yzmUrl,loginContext);
     }
 
 
