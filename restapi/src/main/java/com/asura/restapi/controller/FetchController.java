@@ -5,12 +5,14 @@ import com.asura.restapi.api.IFetcher;
 import com.asura.restapi.controller.params.response.Result;
 import com.asura.restapi.model.TaxUser;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,12 +25,12 @@ import java.util.Map;
  * Created by Mario on 2017/11/13 0013.
  * Fetch Controller
  */
-@Api(description = "Fetch")
+@Api(description = "抓取接口")
 @RestController
-@RequestMapping(value = "/")
+@RequestMapping(value = "/asura/tax")
 public class FetchController implements ApplicationContextAware {
 
-    Logger logger = LoggerFactory.getLogger(getClass());
+    private Logger logger = LoggerFactory.getLogger(getClass());
 
     private static Map<String, Object> fetcherMap = Collections.synchronizedMap(new HashMap<String, Object>());
 
@@ -42,42 +44,40 @@ public class FetchController implements ApplicationContextAware {
         }
     }
 
-    @ApiOperation("全部Fetcher")
-    @RequestMapping(value = "/fetchers", method = RequestMethod.GET)
-    public Result getAllFetchers() {
-        return new Result(fetcherMap);
-    }
     @ApiOperation("个税页面初始化")
-    @RequestMapping(value = "/asura/tax/init", method = RequestMethod.POST)
-    public Result taxPageInit(TaxUser taxUser) {
-
-        String cityCode= taxUser.getCityCode();
+    @RequestMapping(value = "/init", method = RequestMethod.POST)
+    @ApiImplicitParam(name = "taxUser", value = "详细实体taxUser", required = true, dataType = "TaxUser", paramType = "body")
+    public Result taxPageInit(@RequestBody TaxUser taxUser) {
+        String cityCode = taxUser.getCityCode();
         logger.info("taxLogin:city" + cityCode);
-        return ((IFetcher)fetcherMap.get(cityCode)).pageInit(taxUser);
+        return ((IFetcher) fetcherMap.get(cityCode)).pageInit(taxUser);
     }
 
 
     @ApiOperation("个税登录")
-    @RequestMapping(value = "/asura/tax/login", method = RequestMethod.POST)
-    public Result taxLogin(TaxUser taxUser) {
-        String cityCode= taxUser.getCityCode();
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    @ApiImplicitParam(name = "taxUser", value = "详细实体taxUser", required = true, dataType = "TaxUser", paramType = "body")
+    public Result taxLogin(@RequestBody TaxUser taxUser) {
+        String cityCode = taxUser.getCityCode();
         logger.info("taxLogin:city" + cityCode);
-        return ((IFetcher)fetcherMap.get(cityCode)).login(taxUser);
+        return ((IFetcher) fetcherMap.get(cityCode)).login(taxUser);
     }
 
     @ApiOperation("个税刷新验证码")
-    @RequestMapping(value = "/asura/tax/refreshCaptcha", method = RequestMethod.POST)
-    public Result taxRefreshCaptcha(TaxUser taxUser) {
-        String cityCode= taxUser.getCityCode();
+    @RequestMapping(value = "/refreshCaptcha", method = RequestMethod.POST)
+    @ApiImplicitParam(name = "taxUser", value = "详细实体taxUser", required = true, dataType = "TaxUser", paramType = "body")
+    public Result taxRefreshCaptcha(@RequestBody TaxUser taxUser) {
+        String cityCode = taxUser.getCityCode();
         logger.info("taxLogin:city" + cityCode);
-        return ((IFetcher)fetcherMap.get(cityCode)).refreshCaptcha(taxUser);
+        return ((IFetcher) fetcherMap.get(cityCode)).refreshCaptcha(taxUser);
     }
 
     @ApiOperation("个税刷新短信验证码")
-    @RequestMapping(value = "/asura/tax/refreshSms", method = RequestMethod.POST)
-    public Result taxRefreshSms(TaxUser taxUser) {
-        String cityCode= taxUser.getCityCode();
+    @RequestMapping(value = "/refreshSms", method = RequestMethod.POST)
+    @ApiImplicitParam(name = "taxUser", value = "详细实体taxUser", required = true, dataType = "TaxUser", paramType = "body")
+    public Result taxRefreshSms(@RequestBody TaxUser taxUser) {
+        String cityCode = taxUser.getCityCode();
         logger.info("taxLogin:city" + cityCode);
-        return ((IFetcher)fetcherMap.get(cityCode)).refreshSms(taxUser);
+        return ((IFetcher) fetcherMap.get(cityCode)).refreshSms(taxUser);
     }
 }
