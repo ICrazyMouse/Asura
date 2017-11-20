@@ -34,7 +34,7 @@ public class SwaggerConfig {
         return new Docket(DocumentationType.SWAGGER_2)
                 .enable(this.swaggerShow)
                 .apiInfo(new ApiInfoBuilder()
-                        .title("大标题")//大标题
+                        .title("Asura")//大标题
                         .description("描述。<br/>" +
                                 "#接口约定#<br/>" +
                                 "需要登录验证的接口位于/control/路径下<br/>" +
@@ -42,7 +42,7 @@ public class SwaggerConfig {
                         .version("1.0.0")//版本
                         .build())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.fetchking.restapi.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.asura.restapi.controller"))
                 .paths(PathSelectors.any())
                 .build()
                 .globalOperationParameters(list);
