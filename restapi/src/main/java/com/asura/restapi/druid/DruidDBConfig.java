@@ -23,7 +23,7 @@ public class DruidDBConfig {
     @Value("${spring.datasource.password}")
     private String password;
 
-    @Value("${spring.datasource.driver-class-name}")
+    @Value("${spring.datasource.driverClassName}")
     private String driverClassName;
 
     @Value("${spring.datasource.initialSize}")
@@ -59,8 +59,8 @@ public class DruidDBConfig {
     @Value("${spring.datasource.poolPreparedStatements}")
     private boolean poolPreparedStatements;
 
-    @Value("{spring.datasource.connectionProperties}")
-    private String connectionProperties;
+//    @Value("{spring.datasource.connectionProperties}")
+//    private String connectionProperties;
 
     @Bean
     @Primary  //覆盖其他来源的DataSource
@@ -82,7 +82,7 @@ public class DruidDBConfig {
         datasource.setTestOnBorrow(testOnBorrow);
         datasource.setTestOnReturn(testOnReturn);
         datasource.setPoolPreparedStatements(poolPreparedStatements);
-        datasource.setConnectionProperties(connectionProperties);
+//        datasource.setConnectionProperties(connectionProperties);
 
         return datasource;
     }

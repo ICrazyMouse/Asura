@@ -1,0 +1,85 @@
+spring.profiles.active: pro
+info:
+    build:
+        artifact: -@project.artifactId@
+        name: -@project.name@
+        description: -@project.description@
+        info.build.version: -@project.version@
+server:
+    port: 8080
+logging:
+    level:
+        tk.mybatis: TRACE
+spring:
+    application:
+      name: demo
+    http:
+        encoding:
+            charset: UTF-8
+            force: true
+    datasource:
+        name: datasource
+        driverClassName: com.mysql.jdbc.Driver
+        url: jdbc:mysql://127.0.0.1:3306/mysql?serverTimezone=Hongkong&useSSL=false&characterEncoding=utf-8
+        username: root
+        password: 123456
+        # 使用druid数据源
+        type: com.alibaba.druid.pool.DruidDataSource
+        filters: stat
+        maxActive: 20
+        initialSize: 1
+        maxWait: 60000
+        minIdle: 1
+        timeBetweenEvictionRunsMillis: 60000
+        minEvictableIdleTimeMillis: 300000
+        validationQuery: select 1 from dual
+        testWhileIdle: true
+        testOnBorrow: false
+        testOnReturn: false
+        poolPreparedStatements: true
+        maxOpenPreparedStatements: 20
+
+
+
+#mybatis配置
+mybatis:
+#    type-aliases-package: tk.mybatis.springboot.model
+    mapper-locations: classpath:com.asura.restapi.mapper/*.xml
+
+mapper:
+#    mappers:
+#        - com.caiyi.financial.**.mapper
+    not-empty: false
+    identity: mysql
+
+pagehelper:
+    helperDialect: mysql
+    returnPageInfo: check
+    supportMethodsArguments: true
+    reasonable: true
+    params: count=countSql
+
+
+##运行状态 actuator监控
+endpoints:
+  enabled: true
+  info:
+    sensitive: false
+  health:
+    sensitive: false
+management:
+  security:
+    enabled: false
+  ##服务路径
+  context-path: /manage
+  ##服务端口
+  port: 8081
+  info:
+    git:
+      enabled: true
+      mode: full
+
+
+swagger:
+    show: false
+mybatis.configuration.map-underscore-to-camel-case: true
