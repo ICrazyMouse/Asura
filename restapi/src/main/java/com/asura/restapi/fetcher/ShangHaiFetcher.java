@@ -9,21 +9,25 @@ import com.asura.restapi.common.LoginContext;
 import com.asura.restapi.common.MemcacheClient;
 import com.asura.restapi.controller.params.response.Result;
 import com.asura.restapi.model.TaxUser;
+import com.asura.restapi.model.dto.TaskDto;
+import com.asura.restapi.service.TaskService;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URLEncoder;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by lichuanshun on 2017/11/18.
  *
- * 上海个税登录&注册相关
+ * 上海个税登录相关
  */
 @Fetcher(code="310100")
 public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFetcher{
@@ -41,6 +45,9 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
 
     //缓存
     protected MemcacheClient memcacheClient = MemcacheClient.getInstance();
+
+    @Autowired
+    TaskService taskService;
 
     @Override
     public void logout(JSONObject params) throws Exception {
@@ -81,7 +88,7 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
         // 获取验证码
 
         // 初始化taskid
-        String taskId = creatTaskId();
+        String taskId = creatTaskId(taxUser);
         //
         String captcha = refreshCaptcha(loginContext,taskId);
 
@@ -221,7 +228,29 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
 
     @Override
     public Result refreshCaptcha(TaxUser taxUser) {
-        return null;
+        Result result = new Result();
+        String taskId = taxUser.getTaskId();
+        logger.info("shanghai login:start" + taskId);
+        long start = System.currentTimeMillis();
+        System.setProperty ("jsse.enableSNIExtension", "false");
+        String redisCookieForShangHaiLogin = taskId + "shanghailogin";
+
+        //初始化
+        BasicCookieStore cookieStore = (BasicCookieStore)memcacheClient.get(redisCookieForShangHaiLogin);
+        LoginContext loginContext = createLoginContext(cookieStore);
+
+        // 获取验证码
+        String captcha = refreshCaptcha(loginContext, taskId);
+
+        // 刷新缓存中的验证码
+        memcacheClient.set(redisCookieForShangHaiLogin, loginContext.getCookieStore());
+        JSONObject data = new JSONObject();
+        data.put("taskId", taskId);
+        data.put("captcha", captcha);
+        result.setData(data);
+        long take = System.currentTimeMillis() - start;
+        logger.info(taskId + "shanghai login:end" + take);
+        return result;
     }
 
     @Override
@@ -262,9 +291,20 @@ public class ShangHaiFetcher extends AbstractHttpService<TaxUser> implements IFe
     }
 
 
-    private String creatTaskId(){
-        // TODO: 2017/11/19
-        return "1";
+    /**
+     * 初始化任务
+     * @param taxUser
+     * @return
+     */
+    private String creatTaskId(TaxUser taxUser){
+        TaskDto taskDto = new TaskDto();
+        taskDto.setCity_code(taxUser.getCityCode());
+        taskDto.setUser_name(taxUser.getUserName());
+        taskDto.setPwd(taxUser.getPwd());
+        taskDto.setSource(Optional.ofNullable(taxUser.getSoure()).orElse("self"));
+        taskService.createTask(taskDto);
+        logger.info("taskId:" + taskDto.getTask_id());
+        return taskDto.getTask_id();
     }
 
     private String getSignPwd(String url) {

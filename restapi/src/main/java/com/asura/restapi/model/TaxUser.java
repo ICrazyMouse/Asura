@@ -13,23 +13,18 @@ import lombok.Setter;
 @Setter
 public class TaxUser {
     // 验证码
-    String captcha;
+    private String captcha;
     // 用户名
-    String userName;
+    private String userName;
     // 密码
-    String pwd;
+    private String pwd;
     // 城市id
-    String cityCode;
-
-    public String getTaskId() {
-        return taskId;
-    }
-
-    public void setTaskId(String taskId) {
-        this.taskId = taskId;
-    }
-
+    private String cityCode;
     // 唯一任务id
-    String taskId;
+    private String taskId;
+    // 证件类型
+    private String idType;
+    // 来源渠道
+    private String soure;
 
 }
