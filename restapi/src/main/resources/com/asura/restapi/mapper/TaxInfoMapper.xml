@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.asura.restapi.mapper.TaxInfoMapper">
+    <insert id="saveTaxInfo" parameterType="com.asura.restapi.model.dto.TaxInfo" >
+
+INSERT INTO tb_tax_info(foreign_id, source, item, tax_money, period, levying_department,
+        tax_date, tax_unit, tax_unit_code, period_start, period_end, income, tax_user_code,
+         leaving_department_code, real_amount, parent_department, tax_unit_djxh, tax_unit_name,
+          save_date, user_name, id_card_num, id_card_type_code, id_card_type, sjsdxmdm,
+          ynssde, tax_submit, sdxmdm, dzlbzdsdm, tax_submit_date, sdxmmc, dzsph, szmc, szdm)
+       VALUES
+        (
+        #{foreign_id,jdbcType=VARCHAR},#{source,jdbcType=VARCHAR},#{item,jdbcType=VARCHAR},#{tax_money,jdbcType=VARCHAR},
+        #{period,jdbcType=VARCHAR},#{levying_department,jdbcType=VARCHAR},#{tax_date,jdbcType=VARCHAR},#{tax_unit,jdbcType=VARCHAR},
+        #{tax_unit_code,jdbcType=VARCHAR},#{period_start,jdbcType=VARCHAR},#{period_end,jdbcType=VARCHAR},#{income,jdbcType=VARCHAR},
+        #{tax_user_code,jdbcType=VARCHAR},#{leaving_department_code,jdbcType=VARCHAR},#{real_amount,jdbcType=VARCHAR},
+        #{parent_department,jdbcType=VARCHAR},#{tax_unit_djxh,jdbcType=VARCHAR},#{tax_unit_name,jdbcType=VARCHAR},
+        #{save_date,jdbcType=VARCHAR},#{user_name,jdbcType=VARCHAR},#{id_card_num,jdbcType=VARCHAR},
+        #{id_card_type_code,jdbcType=VARCHAR},#{id_card_type,jdbcType=VARCHAR},#{sjsdxmdm,jdbcType=VARCHAR},
+        #{ynssde,jdbcType=VARCHAR},#{tax_submit,jdbcType=VARCHAR},#{sdxmdm,jdbcType=VARCHAR},
+        #{dzlbzdsdm,jdbcType=VARCHAR},#{tax_submit_date,jdbcType=VARCHAR},#{sdxmmc,jdbcType=VARCHAR},
+        #{dzsph,jdbcType=VARCHAR},#{szmc,jdbcType=VARCHAR},#{szdm,jdbcType=VARCHAR})
+    </insert>
+
+    <update id="updateTaxStatus" >
+        UPDATE tb_tax_task t1 set t1.status = {status,jdbcType=INTEGER},t1.update_time = now()
+        where t1.task_id = #{task_id,jdbcType=VARCHAR}
+    </update>
+
+    <select id="queryTax" resultType="com.asura.restapi.model.dto.TaskDto">
+        SELECT * from tb_tax_task  where t1.task_id = #{task_id,jdbcType=VARCHAR}
+    </select>
+</mapper>

@@ -6,7 +6,7 @@ info:
         description: -@project.description@
         info.build.version: -@project.version@
 server:
-    port: 8080
+    port: 10001
 logging:
     level:
         tk.mybatis: TRACE
@@ -20,9 +20,9 @@ spring:
     datasource:
         name: datasource
         driverClassName: com.mysql.jdbc.Driver
-        url: jdbc:mysql://127.0.0.1:3306/mysql?serverTimezone=Hongkong&useSSL=false&characterEncoding=utf-8
-        username: root
-        password: 123456
+        url: jdbc:mysql://127.0.0.1:3306/db_tax?serverTimezone=Hongkong&useSSL=false&characterEncoding=utf-8
+        username: asurapro
+        password: Tax123456a?
         # 使用druid数据源
         type: com.alibaba.druid.pool.DruidDataSource
         filters: stat

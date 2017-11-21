@@ -17,10 +17,33 @@ public class TaskService {
     TaskMapper taskMapper;
 
 
+    /**
+     * 初始化任务
+     * @param taskDto
+     * @return
+     */
     public int createTask(TaskDto taskDto){
         String taskId = UUID.randomUUID().toString();
         taskDto.setTask_id(taskId);
         return taskMapper.createTask(taskDto);
+    }
 
+    /**
+     *
+     * @param status 状态  0: 错误 1：正常 2：正在登录 3:登录成功，正在解析 4：解析成功
+     * @param taskId 任务ID
+     * @return
+     */
+    public int updateTaskStatus(Integer status, String taskId){
+        return taskMapper.updateTaskStatus(status,taskId);
+    }
+
+    /**
+     *
+     * @param taskId
+     * @return
+     */
+    public TaskDto queryTaskByTaskId(String taskId){
+        return taskMapper.queryTaskByTaskId(taskId);
     }
 }

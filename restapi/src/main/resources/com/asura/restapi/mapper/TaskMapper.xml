@@ -9,4 +9,13 @@
      #{id_type,jdbcType=VARCHAR}
      ,#{source,jdbcType=INTEGER},#{pwd,jdbcType=VARCHAR})
     </insert>
+
+    <update id="updateTaskStatus" >
+        UPDATE tb_tax_task t1 set t1.status = #{status,jdbcType=INTEGER},t1.update_time = now()
+        where t1.task_id = #{task_id,jdbcType=VARCHAR}
+    </update>
+
+    <select id="queryTaskByTaskId" resultType="com.asura.restapi.model.dto.TaskDto">
+        SELECT * from tb_tax_task t1 where t1.task_id = #{task_id,jdbcType=VARCHAR}
+    </select>
 </mapper>

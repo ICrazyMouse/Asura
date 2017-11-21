@@ -25,4 +25,18 @@ public class TaskServiceTest extends TestSupport{
         int result = taskService.createTask(taskDto);
         System.out.println("&&&&&&&&&&&result:" + result);
     }
+
+    @Test
+    public void testUpdateTask(){
+        String taskId = "eb2ee05f-e3f2-4981-83e0-30c76dc50c04";
+        int status = 3;
+        taskService.updateTaskStatus(status, taskId);
+
+    }
+
+    @Test
+    public void testQueryTask(){
+        String taskId = "eb2ee05f-e3f2-4981-83e0-30c76dc50c04";
+        taskService.queryTaskByTaskId(taskId);
+    }
 }

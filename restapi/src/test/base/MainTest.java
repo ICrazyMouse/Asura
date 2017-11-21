@@ -1,5 +1,6 @@
 package base;
 
+import com.alibaba.fastjson.JSONObject;
 import com.asura.restapi.common.encrypt.AsuraEncrypt;
 
 /**
@@ -15,5 +16,14 @@ public class MainTest {
         System.out.println(encryptStr);
 
         System.out.println(AsuraEncrypt.dencryptStr(encryptStr));
+
+        JSONObject params = new JSONObject();
+        params.put("cityCode", "310100");
+        params.put("userName", "17612188926");
+        params.put("pwd", "love1990");
+        params.put("taskId","1");
+        params.put("captcha","1234");
+        System.out.println(JSONObject.toJSONString(params));
+
     }
 }

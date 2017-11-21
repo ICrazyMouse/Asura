@@ -217,10 +217,6 @@ public abstract class AbstractHttpService<M> implements BaseService {
 
             response = httpClient.execute(httpGet, context.getHttpContext());
 
-
-
-
-
             context.setResponseInfo(response);
             // 获取信息
             HttpEntity entity = response.getEntity();
