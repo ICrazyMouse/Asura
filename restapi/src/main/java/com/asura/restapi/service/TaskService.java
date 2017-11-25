@@ -5,8 +5,6 @@ import com.asura.restapi.model.dto.TaskDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
-
 /**
  * Created by lichuanshun on 2017/11/20.
  */
@@ -22,9 +20,9 @@ public class TaskService {
      * @param taskDto
      * @return
      */
-    public int createTask(TaskDto taskDto){
-        String taskId = UUID.randomUUID().toString();
-        taskDto.setTask_id(taskId);
+
+
+    public int saveTask(TaskDto taskDto){
         return taskMapper.createTask(taskDto);
     }
 

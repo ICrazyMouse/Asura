@@ -1,5 +1,6 @@
 package com.asura.restapi.common;
 
+import com.alibaba.druid.util.StringUtils;
 import com.asura.restapi.model.TaxUser;
 import com.asura.restapi.model.dto.TaskDto;
 import com.asura.restapi.model.dto.TaxInfo;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by lichuanshun on 2017/11/20.
@@ -16,7 +18,8 @@ import java.util.List;
 public abstract class BaseFetcher extends AbstractHttpService<TaxUser>{
 
     //缓存
-    protected MemcacheClient memcacheClient = MemcacheClient.getInstance();
+    @Autowired
+    protected MemcacheClient memcacheClient;
 
     @Autowired
     protected TaskService taskService;
@@ -162,6 +165,35 @@ public abstract class BaseFetcher extends AbstractHttpService<TaxUser>{
      */
     protected int saveTaxInfo(TaxInfo taxInfo){
         return taxInfoService.saveTaxInfo(taxInfo);
+    }
+
+
+    /**
+     *
+     * @return
+     */
+    protected  String createTaskId(){
+        return UUID.randomUUID().toString();
+    }
+
+    /**
+     * 初始化任务
+     * @param taxUser
+     * @return
+     */
+    protected String saveTaskId(TaxUser taxUser){
+        TaskDto taskDto = new TaskDto();
+        taskDto.setCity_code(taxUser.getCityCode());
+        taskDto.setUser_name(taxUser.getUserName());
+        taskDto.setPwd(taxUser.getPwd());
+        taskDto.setTask_id(taxUser.getTaskId());
+        if (StringUtils.isEmpty(taxUser.getSoure())){
+            taxUser.setSoure("self");
+        }
+        taskDto.setSource(taxUser.getSoure());
+        taskService.saveTask(taskDto);
+        logger.info("taskId:" + taskDto.getTask_id());
+        return taskDto.getTask_id();
     }
 
 }

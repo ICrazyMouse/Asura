@@ -83,3 +83,14 @@ management:
 swagger:
     show: false
 mybatis.configuration.map-underscore-to-camel-case: true
+
+memcache.servers: localhost:11211,localhost:11211
+memcache.weights: 5,5
+memcache.failover: true
+memcache.initConn: 20
+memcache.minConn: 10
+memcache.maxConn: 50
+memcache.maintSleep: 3000
+memcache.nagle: false
+memcache.socketTO: 3000
+memcache.aliveCheck: true

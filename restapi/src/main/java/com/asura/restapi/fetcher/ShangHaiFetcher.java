@@ -8,9 +8,9 @@ import com.asura.restapi.api.IFetcher;
 import com.asura.restapi.common.BaseFetcher;
 import com.asura.restapi.common.LoginContext;
 import com.asura.restapi.controller.params.response.Result;
-import com.asura.restapi.model.dto.TaxInfo;
 import com.asura.restapi.model.TaxUser;
 import com.asura.restapi.model.dto.TaskDto;
+import com.asura.restapi.model.dto.TaxInfo;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.apache.http.impl.client.BasicCookieStore;
@@ -21,7 +21,6 @@ import java.net.URLEncoder;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Created by lichuanshun on 2017/11/18.
@@ -70,9 +69,7 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
         LoginContext loginContext = createLoginContext(cookieStore);
 
         loginContext.setUri(PAGE_INIT_URL);
-        // TODO: 2017/11/18 jdk版本不同造成ssl握手失败 服务器运行待验证 
-        System.setProperty ("jsse.enableSNIExtension", "false");
-        
+
         // 页面初始化
         String initResult = doGet(loginContext);
 
@@ -82,7 +79,7 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
         // 获取验证码
 
         // 初始化taskid
-        String taskId = creatTaskId(taxUser);
+        String taskId = createTaskId();
         //
         String captcha = refreshCaptcha(loginContext,taskId);
 
@@ -119,9 +116,6 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
         logger.info("shanghai login:start" + taskId);
         long start = System.currentTimeMillis();
         Result result = new Result();
-        System.setProperty ("jsse.enableSNIExtension", "false");
-
-
         String rsaPublicKey = (String)getCacheRsaPublicKey(taskId);
         //初始化
         BasicCookieStore cookieStore = (BasicCookieStore)getCachedLoginCookie(taskId);
@@ -204,6 +198,8 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
         JSONObject login = JSONObject.parseObject(loginResult);
 
         if ("SUCCESS".equals(login.getString("type")) ){
+
+            saveTaskId(taxUser);
             //登录成功
             setTaskStatusParsing(taskId);
             logger.info(taskId + "登录成功********************");
@@ -228,14 +224,23 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
             //
             TaskDto taskInfo = queryTaskByTaskId(taskId);
             JSONArray dataArr = taxData.getJSONArray("data");
-            dataArr.forEach(data -> {
-                JSONObject tempData = (JSONObject)data;
-                TaxInfo taxInfo = transformData(tempData);
+
+            for (Object tempObj : dataArr){
+                JSONObject data = (JSONObject)tempObj;
+                TaxInfo taxInfo = transformData(data);
                 taxInfo.setForeign_id(taskInfo.getId());
                 taxInfo.setSource(taskInfo.getSource());
                 //保存入库
                 saveTaxInfo(taxInfo);
-            });
+            }
+//            dataArr.forEach(data -> {
+//                JSONObject tempData = (JSONObject)data;
+//                TaxInfo taxInfo = transformData(tempData);
+//                taxInfo.setForeign_id(taskInfo.getId());
+//                taxInfo.setSource(taskInfo.getSource());
+//                //保存入库
+//                saveTaxInfo(taxInfo);
+//            });
 
             clearMemcache(taskId);
 
@@ -251,8 +256,6 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
         String taskId = taxUser.getTaskId();
         logger.info("shanghai login:start" + taskId);
         long start = System.currentTimeMillis();
-        System.setProperty ("jsse.enableSNIExtension", "false");
-
         //初始化
         BasicCookieStore cookieStore = (BasicCookieStore)getCachedLoginCookie(taskId);
         LoginContext loginContext = createLoginContext(cookieStore);
@@ -309,21 +312,6 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
     }
 
 
-    /**
-     * 初始化任务
-     * @param taxUser
-     * @return
-     */
-    private String creatTaskId(TaxUser taxUser){
-        TaskDto taskDto = new TaskDto();
-        taskDto.setCity_code(taxUser.getCityCode());
-        taskDto.setUser_name(taxUser.getUserName());
-        taskDto.setPwd(taxUser.getPwd());
-        taskDto.setSource(Optional.ofNullable(taxUser.getSoure()).orElse("self"));
-        taskService.createTask(taskDto);
-        logger.info("taskId:" + taskDto.getTask_id());
-        return taskDto.getTask_id();
-    }
 
     /**
      * 获得加密密码

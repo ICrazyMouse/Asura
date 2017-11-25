@@ -26,5 +26,7 @@ public class TaxUser {
     private String idType;
     // 来源渠道
     private String soure;
+    // 身份证号
+    private String idnum;
 
 }

@@ -26,4 +26,12 @@ public class MainTest {
         System.out.println(JSONObject.toJSONString(params));
 
     }
+
+
+    /**
+     *
+     */
+    private void encryptWxData(){
+
+    }
 }

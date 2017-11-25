@@ -22,7 +22,7 @@ public class TaskServiceTest extends TestSupport{
         taskDto.setPwd(AsuraEncrypt.encryptStr("love1990"));
         taskDto.setUser_name(AsuraEncrypt.encryptStr("372926198903172511"));
         taskDto.setSource("test");
-        int result = taskService.createTask(taskDto);
+        int result = taskService.saveTask(taskDto);
         System.out.println("&&&&&&&&&&&result:" + result);
     }
 

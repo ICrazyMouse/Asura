@@ -3,19 +3,22 @@ package com.asura.restapi.common;
 import com.alibaba.druid.util.StringUtils;
 import com.danga.MemCached.MemCachedClient;
 import com.danga.MemCached.SockIOPool;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.Map;
 
 /**
  */
-public class MemcacheClient {
+@Component
+public class MemcacheClient extends BaseUtil{
+
+
     private MemCachedClient mcc = new MemCachedClient();
     private static MemcacheClient instance = null;
 
     public MemcacheClient() {
+        init();
     }
 
     public static synchronized MemcacheClient getInstance() {
@@ -92,13 +95,15 @@ public class MemcacheClient {
         return this.mcc.getMulti(key);
     }
 
-    public void init() {
-        Config pushConf = ConfigFactory.load("memcache.properties");
-        SockIOPool pool = SockIOPool.getInstance();
-        String memcache_ip = pushConf.getString("memcache.servers");
-        String [] addr = memcache_ip.split("\\,");
 
-        String[] weightarr = pushConf.getString("memcache.weights").split(",");
+
+    public void init() {
+        System.out.println("SockIOPool:init start");
+        SockIOPool pool = SockIOPool.getInstance();
+        String memcache_ip = BaseUtil.getString("memcache.servers");
+        String [] addr = memcache_ip.split("\\,");
+//
+        String[] weightarr = BaseUtil.getString("memcache.weights").split(",");
         Integer[] weights = new Integer[weightarr.length];
         for(int i = 0; i < weightarr.length; ++i) {
             weights[i] = new Integer(weightarr[i]);
@@ -106,15 +111,15 @@ public class MemcacheClient {
 
         pool.setServers(addr);
         pool.setWeights(weights);
-        pool.setFailover(pushConf.getBoolean("memcache.failover"));
-        pool.setInitConn(pushConf.getInt("memcache.initConn"));
-        pool.setMinConn(pushConf.getInt("memcache.minConn"));
-        pool.setMaxConn(pushConf.getInt("memcache.maxConn"));
+        pool.setFailover(getConfigBoolean("memcache.failover"));
+        pool.setInitConn(getConfigInteger("memcache.initConn"));
+        pool.setMinConn(getConfigInteger("memcache.minConn"));
+        pool.setMaxConn(getConfigInteger("memcache.maxConn"));
         pool.setMaxIdle(1000 * 30 * 30);
-        pool.setMaintSleep(pushConf.getLong("memcache.maintSleep"));
-        pool.setNagle(pushConf.getBoolean("memcache.nagle"));
-        pool.setSocketTO(pushConf.getInt("memcache.socketTO"));
-        pool.setAliveCheck(pushConf.getBoolean("memcache.aliveCheck"));
+        pool.setMaintSleep((Long.valueOf(BaseUtil.getString("memcache.maintSleep"))));
+        pool.setNagle(getConfigBoolean("memcache.nagle"));
+        pool.setSocketTO(getConfigInteger("memcache.socketTO"));
+        pool.setAliveCheck(getConfigBoolean("memcache.aliveCheck"));
         pool.initialize();
     }
 
