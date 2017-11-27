@@ -3,11 +3,11 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.asura.restapi.mapper.TaskMapper">
     <insert id="createTask" parameterType="com.asura.restapi.model.dto.TaskDto" >
-     INSERT INTO tb_tax_task(task_id, user_name, city_code, id_type, source, pwd) VALUES
+     INSERT INTO tb_tax_task(task_id, user_name, city_code, id_type, source, pwd,idnum,uid) VALUES
      (#{task_id,jdbcType=VARCHAR},#{user_name,jdbcType=VARCHAR},
      #{city_code,jdbcType=VARCHAR},
      #{id_type,jdbcType=VARCHAR}
-     ,#{source,jdbcType=INTEGER},#{pwd,jdbcType=VARCHAR})
+     ,#{source,jdbcType=INTEGER},#{pwd,jdbcType=VARCHAR},#{idnum,jdbcType=VARCHAR},#{uid,jdbcType=VARCHAR})
     </insert>
 
     <update id="updateTaskStatus" >

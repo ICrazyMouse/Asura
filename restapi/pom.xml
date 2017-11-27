@@ -76,7 +76,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.34</version>
+            <version>LATEST</version>
         </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
@@ -195,18 +195,6 @@
     </build>
 
     <profiles>
-        <profile>
-            <id>jdk17</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-                <jdk>1.7</jdk>
-            </activation>
-            <properties>
-                <maven.compiler.source>1.7</maven.compiler.source>
-                <maven.compiler.target>1.7</maven.compiler.target>
-                <maven.compiler.compilerVersion>1.7</maven.compiler.compilerVersion>
-            </properties>
-        </profile>
         <profile>
             <!--开发环境-->
             <id>dev</id>

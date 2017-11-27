@@ -20,4 +20,6 @@ public interface TaskMapper{
     int updateTaskStatus(@Param("status") Integer status, @Param("task_id") String taskId);
 
     TaskDto queryTaskByTaskId(@Param("task_id") String taskId);
+
+    
 }

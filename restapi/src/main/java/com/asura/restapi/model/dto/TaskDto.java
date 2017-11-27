@@ -42,5 +42,7 @@ public class TaskDto {
     private String id_type;
     private String status;
     private String source;
+    private String idnum;
+    private String uid;
 
 }

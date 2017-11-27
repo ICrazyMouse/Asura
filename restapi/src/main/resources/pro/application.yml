@@ -21,8 +21,8 @@ spring:
         name: datasource
         driverClassName: com.mysql.jdbc.Driver
         url: jdbc:mysql://127.0.0.1:3306/db_tax?serverTimezone=Hongkong&useSSL=false&characterEncoding=utf-8
-        username: asurapro
-        password: Tax123456a?
+        username: taxtest
+        password: lcs123456A?
         # 使用druid数据源
         type: com.alibaba.druid.pool.DruidDataSource
         filters: stat
@@ -38,8 +38,6 @@ spring:
         testOnReturn: false
         poolPreparedStatements: true
         maxOpenPreparedStatements: 20
-
-
 
 #mybatis配置
 mybatis:
@@ -94,3 +92,5 @@ memcache.maintSleep: 3000
 memcache.nagle: false
 memcache.socketTO: 3000
 memcache.aliveCheck: true
+
+shanghai_pwd_rsa_url: "http://tax.yangdu.ren/shanghai/sh_rsa.html?item=itemval&key=keyval"

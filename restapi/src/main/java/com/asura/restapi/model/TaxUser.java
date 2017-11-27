@@ -11,7 +11,7 @@ import lombok.Setter;
 @Data
 @Getter
 @Setter
-public class TaxUser {
+public class TaxUser extends BaseBean{
     // 验证码
     private String captcha;
     // 用户名
@@ -25,7 +25,7 @@ public class TaxUser {
     // 证件类型
     private String idType;
     // 来源渠道
-    private String soure;
+    private String source;
     // 身份证号
     private String idnum;
 

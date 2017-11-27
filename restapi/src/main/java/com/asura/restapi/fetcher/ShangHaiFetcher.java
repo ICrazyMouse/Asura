@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.asura.restapi.annotations.Fetcher;
 import com.asura.restapi.api.IFetcher;
 import com.asura.restapi.common.BaseFetcher;
+import com.asura.restapi.common.BaseUtil;
 import com.asura.restapi.common.LoginContext;
 import com.asura.restapi.controller.params.response.Result;
 import com.asura.restapi.model.TaxUser;
@@ -39,8 +40,7 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
     // 登录
     protected static final String LOGIN_URL = "https://gr.tax.sh.gov.cn//portals/web/oauth2/login";
     // 密码rsa加密
-    protected static final String PWD_RAS_URL ="http://127.0.0.1:8080/shanghai/sh_rsa.html?item=itemval&key=keyval";
-
+    protected static final String PWD_RAS_URL = BaseUtil.getString("shanghai_pwd_rsa_url");
 
     @Override
     public void logout(JSONObject params) throws Exception {
@@ -62,6 +62,7 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
     @Override
     public Result pageInit(TaxUser taxUser) {
         logger.info("shanghai pageInit:start");
+
         long start = System.currentTimeMillis();
         Result result = new Result();
         //初始化
@@ -71,6 +72,7 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
         loginContext.setUri(PAGE_INIT_URL);
 
         // 页面初始化
+        System.setProperty("jsse.enableSNIExtension", "false");
         String initResult = doGet(loginContext);
 
         // 获取rsa公钥
@@ -83,7 +85,7 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
         //
         String captcha = refreshCaptcha(loginContext,taskId);
 
-        logger.info("data:image/png;base64," + captcha);
+        logger.info( captcha);
 
         logger.info(taskId);
 
@@ -112,6 +114,7 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
      */
     @Override
     public Result login(TaxUser taxUser) {
+        System.setProperty ("jsse.enableSNIExtension", "false");
         String taskId = taxUser.getTaskId();
         logger.info("shanghai login:start" + taskId);
         long start = System.currentTimeMillis();
@@ -159,8 +162,8 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
         //
         Map<String, String> loginParams = new LinkedHashMap();
         loginParams.put("yhm", taxUser.getUserName());
-        loginParams.put("idType","201");
-        loginParams.put("idNumber","");
+        loginParams.put("idType", taxUser.getIdType());
+        loginParams.put("idNumber", taxUser.getIdnum());
 
         loginParams.put("mm", mm);
 
@@ -205,6 +208,12 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
             logger.info(taskId + "登录成功********************");
         } else {
             result.setCode(Result.ERROR_CODE);
+            result.setMessage(captchaCheck.getString("content"));
+            JSONObject tempDate = new JSONObject();
+            tempDate.put("taskId", taskId);
+            tempDate.put("captcha", refreshCaptcha(loginContext,taskId));
+            result.setData(tempDate);
+
             result.setMessage(login.getString("content"));
 
             cacheLoginCookie(taskId,loginContext.getCookieStore());
@@ -225,22 +234,22 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
             TaskDto taskInfo = queryTaskByTaskId(taskId);
             JSONArray dataArr = taxData.getJSONArray("data");
 
-            for (Object tempObj : dataArr){
-                JSONObject data = (JSONObject)tempObj;
-                TaxInfo taxInfo = transformData(data);
-                taxInfo.setForeign_id(taskInfo.getId());
-                taxInfo.setSource(taskInfo.getSource());
-                //保存入库
-                saveTaxInfo(taxInfo);
-            }
-//            dataArr.forEach(data -> {
-//                JSONObject tempData = (JSONObject)data;
-//                TaxInfo taxInfo = transformData(tempData);
+//            for (Object tempObj : dataArr){
+//                JSONObject data = (JSONObject)tempObj;
+//                TaxInfo taxInfo = transformData(data);
 //                taxInfo.setForeign_id(taskInfo.getId());
 //                taxInfo.setSource(taskInfo.getSource());
 //                //保存入库
 //                saveTaxInfo(taxInfo);
-//            });
+//            }
+            dataArr.forEach(data -> {
+                JSONObject tempData = (JSONObject)data;
+                TaxInfo taxInfo = transformData(tempData);
+                taxInfo.setForeign_id(taskInfo.getId());
+                taxInfo.setSource(taskInfo.getSource());
+                //保存入库
+                saveTaxInfo(taxInfo);
+            });
 
             clearMemcache(taskId);
 
@@ -292,8 +301,12 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
             Document initHtml = Jsoup.parse(initPageHtml);
             rsaPublicKey = initHtml.getElementById("st").attr("data-param-rsapubkey");
             logger.info("rsaPublicKey:" + rsaPublicKey);
+
         } catch (Exception e) {
             logger.error("getRsaPublicKeyFromInitPage:error:" + e.getMessage(), e);
+        }
+        if (StringUtils.isEmpty(rsaPublicKey)){
+            rsaPublicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCEKu2Fc233FMyxtgQZSS6+b/7rIquYbTWfJM5kOkJDVDUe9UD8WSgj3hpXumLxiK2eUJFutCYRpch4GqplPVejYz/LRb6/Zapu+LrVMbmE0aU8AYfs0uemkVUHkMVnJWi3oUOVUMf3AroZ4UJctwawl2b98suKOwdjTk7Lywb6kwIDAQAB";
         }
         return rsaPublicKey;
     }
@@ -308,7 +321,7 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
         headers.put("Referer", PAGE_INIT_URL);
         String yzmUrl = REFRESH_CAPTCHA_URL + Math.random();
         loginContext.setUri(yzmUrl);
-        return doYzm(taskId, yzmUrl,loginContext);
+        return "data:image/png;base64," + doYzm(taskId, yzmUrl,loginContext);
     }
 
 

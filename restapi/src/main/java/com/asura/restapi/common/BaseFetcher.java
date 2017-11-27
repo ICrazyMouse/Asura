@@ -1,6 +1,7 @@
 package com.asura.restapi.common;
 
 import com.alibaba.druid.util.StringUtils;
+import com.asura.restapi.common.encrypt.AsuraEncrypt;
 import com.asura.restapi.model.TaxUser;
 import com.asura.restapi.model.dto.TaskDto;
 import com.asura.restapi.model.dto.TaxInfo;
@@ -184,13 +185,18 @@ public abstract class BaseFetcher extends AbstractHttpService<TaxUser>{
     protected String saveTaskId(TaxUser taxUser){
         TaskDto taskDto = new TaskDto();
         taskDto.setCity_code(taxUser.getCityCode());
-        taskDto.setUser_name(taxUser.getUserName());
-        taskDto.setPwd(taxUser.getPwd());
+        taskDto.setUser_name(AsuraEncrypt.encryptStr(taxUser.getUserName()));
+        taskDto.setPwd(AsuraEncrypt.encryptStr(taxUser.getPwd()));
         taskDto.setTask_id(taxUser.getTaskId());
-        if (StringUtils.isEmpty(taxUser.getSoure())){
-            taxUser.setSoure("self");
+        taskDto.setId_type(taxUser.getIdType());
+        if (!StringUtils.isEmpty(taxUser.getIdnum())){
+            taskDto.setIdnum(AsuraEncrypt.encryptStr(taxUser.getIdnum()));
         }
-        taskDto.setSource(taxUser.getSoure());
+        if (StringUtils.isEmpty(taxUser.getSource())){
+            taxUser.setSource("self");
+        }
+        taskDto.setUid(taxUser.getUid());
+        taskDto.setSource(taxUser.getSource());
         taskService.saveTask(taskDto);
         logger.info("taskId:" + taskDto.getTask_id());
         return taskDto.getTask_id();

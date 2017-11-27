@@ -19,7 +19,7 @@ spring:
             force: true
     datasource:
         name: datasource
-        driverClassName: com.mysql.jdbc.Driver
+        driverClassName: com.mysql.cj.jdbc.Driver
         url: jdbc:mysql://127.0.0.1:3306/mysql?serverTimezone=Hongkong&useSSL=false&characterEncoding=utf-8
         username: root
         password: 123456
@@ -94,3 +94,6 @@ memcache.maintSleep: 3000
 memcache.nagle: false
 memcache.socketTO: 3000
 memcache.aliveCheck: true
+
+
+shanghai_pwd_rsa_url: "http://127.0.0.1:8088/shanghai/sh_rsa.html?item=itemval&key=keyval"
