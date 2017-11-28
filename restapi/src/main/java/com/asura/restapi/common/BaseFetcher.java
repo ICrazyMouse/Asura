@@ -112,8 +112,8 @@ public abstract class BaseFetcher extends AbstractHttpService<TaxUser>{
      * 将任务状态设置为失败
      * @param taskId
      */
-    protected void setTaskStatusFail(String taskId){
-        updateTaskStatus(taskId, TASK_STATUS_FAIL);
+    protected void setTaskStatusFail(String taskId,String desc){
+        updateTaskStatus(taskId, TASK_STATUS_FAIL,desc);
     }
 
 
@@ -121,23 +121,23 @@ public abstract class BaseFetcher extends AbstractHttpService<TaxUser>{
      * 将任务状态设置为成功
      * @param taskId
      */
-    protected void setTaskStatusSuccess(String taskId){
-        updateTaskStatus(taskId, TASK_STATUS_SUCCESS);
+    protected void setTaskStatusSuccess(String taskId,String desc){
+        updateTaskStatus(taskId, TASK_STATUS_SUCCESS,desc);
     }
 
     /**
      * 将任务状态设置为登录成功,正在解析
      * @param taskId
      */
-    protected void setTaskStatusParsing(String taskId){
-        updateTaskStatus(taskId, TASK_STATUS_LOGIN_PARSING);
+    protected void setTaskStatusParsing(String taskId,String desc){
+        updateTaskStatus(taskId, TASK_STATUS_LOGIN_PARSING,desc);
     }
     /**
      * 将任务状态设置为登录成功,正在解析
      * @param taskId
      */
-    protected void setTaskStatusParseSuccess(String taskId){
-        updateTaskStatus(taskId, TASK_STATUS_PARSE_SUCCESS);
+    protected void setTaskStatusParseSuccess(String taskId,String desc){
+        updateTaskStatus(taskId, TASK_STATUS_PARSE_SUCCESS,desc);
     }
 
     /**
@@ -145,8 +145,8 @@ public abstract class BaseFetcher extends AbstractHttpService<TaxUser>{
      * @param taskId
      * @param status
      */
-    private void updateTaskStatus(String taskId, int status){
-        taskService.updateTaskStatus(status,taskId);
+    private void updateTaskStatus(String taskId, int status,String desc){
+        taskService.updateTaskStatus(status,taskId,desc);
     }
 
     /**

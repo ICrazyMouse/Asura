@@ -79,5 +79,9 @@ public class TaxInfo {
 
     private String update_time;
 
+    private String temp_start;
+
+    private String temp_end;
+
 
 }

@@ -11,7 +11,8 @@
     </insert>
 
     <update id="updateTaskStatus" >
-        UPDATE tb_tax_task t1 set t1.status = #{status,jdbcType=INTEGER},t1.update_time = now()
+        UPDATE tb_tax_task t1 set t1.status = #{status,jdbcType=INTEGER},t1.update_time = now(),
+        t1.desc =#{desc,jdbcType=VARCHAR}
         where t1.task_id = #{task_id,jdbcType=VARCHAR}
     </update>
 

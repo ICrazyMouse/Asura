@@ -3,7 +3,9 @@ package base;
 import com.alibaba.fastjson.JSONObject;
 import com.asura.restapi.common.BaseFetcher;
 import com.asura.restapi.common.LoginContext;
+import com.asura.restapi.common.encrypt.WeChatAESUtil;
 import com.asura.restapi.model.TaxUser;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.impl.client.BasicCookieStore;
 
 /**
@@ -27,8 +29,13 @@ public class MainTest extends BaseFetcher {
 //        params.put("taskId","1");
 //        params.put("captcha","1234");
 //        System.out.println(JSONObject.toJSONString(params));
-        MainTest mainTest = new MainTest();
-        mainTest.encryptWxData();
+//        MainTest mainTest = new MainTest();
+//        mainTest.encryptWxData();
+
+        byte[] result = WeChatAESUtil.instance.encrypt(Base64.decodeBase64("love1990"),
+
+                Base64.decodeBase64("MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCEKu2Fc233FMyxtgQZSS6+b/7rIquYbTWfJM5kOkJDVDUe9UD8WSgj3hpXumLxiK2eUJFutCYRpch4GqplPVejYz/LRb6/Zapu+LrVMbmE0aU8AYfs0uemkVUHkMVnJWi3oUOVUMf3AroZ4UJctwawl2b98suKOwdjTk7Lywb6kwIDAQAB"));
+        System.out.println(result);
     }
 
 

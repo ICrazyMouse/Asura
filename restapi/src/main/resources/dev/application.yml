@@ -82,7 +82,7 @@ management:
 
 swagger:
     show: false
-mybatis.configuration.map-underscore-to-camel-case: true
+#mybatis.configuration.map-underscore-to-camel-case: true
 
 memcache.servers: localhost:11211,localhost:11211
 memcache.weights: 5,5

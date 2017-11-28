@@ -9,6 +9,8 @@ import com.asura.restapi.common.encrypt.WeChatAESUtil;
 import com.asura.restapi.controller.params.response.Result;
 import com.asura.restapi.model.TaxUser;
 import com.asura.restapi.model.WeChatUser;
+import com.asura.restapi.model.dto.TaxInfo;
+import com.asura.restapi.service.TaxInfoService;
 import com.asura.restapi.service.WeChatUserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -36,9 +39,41 @@ public class WeChatUserController extends BaseFetcher {
 
     @Autowired
     protected WeChatUserService weChatUserService;
+    @Autowired
+    protected TaxInfoService taxInfoService;
     //缓存
     @Autowired
     protected MemcacheClient memcacheClient;
+
+
+    @RequestMapping(value = "/taxinfo", method = RequestMethod.POST)
+    @ApiImplicitParam(name = "weChatUser", value = "用户详细实体user", required = true, dataType = "WeChatUser")
+    public Result queryUserTaxInfo(@RequestBody WeChatUser weChatUser){
+        Result result = new Result();
+        String uid = weChatUser.getUid();
+        logger.info("uid:" + uid);
+        if (StringUtils.isEmpty(uid)){
+            result.setCode(Result.ERROR_CODE);
+            result.setMessage("缺少参数");
+            return result;
+
+        }
+        //
+        List<TaxInfo> taxInfo = taxInfoService.queryTaxInfoByUid(uid);
+
+        List<TaxInfo> taxUnitInfo =  taxInfoService.queryTaxUnitAndMoenyByUid(uid);
+
+        if (taxUnitInfo == null || taxUnitInfo.size() <1){
+            result.setCode(Result.ERROR_CODE);
+            result.setMessage("暂无数据");
+            return result;
+        }
+        JSONObject data = new JSONObject();
+        data.put("unit", taxUnitInfo);
+        data.put("tax", taxInfo);
+        result.setData(data);
+        return result;
+    }
 
 
     @RequestMapping(value = "/userinfo", method = RequestMethod.POST)
@@ -50,13 +85,12 @@ public class WeChatUserController extends BaseFetcher {
         if (StringUtils.isEmpty(uid)){
             result.setCode(Result.ERROR_CODE);
             result.setMessage("缺少参数");
+            return result;
         }
         WeChatUser user = weChatUserService.queryWeChatUser(uid);
-
-
+        result.setData(user);
         return result;
     }
-
     @RequestMapping(value = "/query", method = RequestMethod.POST)
     @ApiImplicitParam(name = "weChatUser", value = "用户详细实体user", required = true, dataType = "WeChatUser")
     public Result queryUserOpenId(@RequestBody WeChatUser weChatUser){

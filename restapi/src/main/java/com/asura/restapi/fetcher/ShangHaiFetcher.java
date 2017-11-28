@@ -153,6 +153,7 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
             keyEncoded =  URLEncoder.encode(rsaPublicKey,"utf-8");
         }catch (Exception e){
             logger.error(taskId + ":" + e.getMessage(), e);
+
         }
         String url = PWD_RAS_URL.replace("itemval",taxUser.getPwd())
                 .replace("keyval", keyEncoded);
@@ -204,7 +205,7 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
 
             saveTaskId(taxUser);
             //登录成功
-            setTaskStatusParsing(taskId);
+            setTaskStatusParsing(taskId,"登录成功");
             logger.info(taskId + "登录成功********************");
         } else {
             result.setCode(Result.ERROR_CODE);
@@ -252,9 +253,12 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
             });
 
             clearMemcache(taskId);
-
+            setTaskStatusSuccess(taskId,"成功");
+            result.setMessage("获取成功");
         } else {
-
+            result.setCode(Result.ERROR_CODE);
+            result.setMessage(taxData.getString("content"));
+            setTaskStatusFail(taskId, taxData.getString("content"));
         }
         return result;
     }
@@ -499,7 +503,8 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
         taxInfo.setPeriod_start(periodStart);
         // 缴税周期
         if (!StringUtils.isEmpty(periodStart)){
-            String period = periodStart.replace("-","").substring(0, periodStart.length()-2);
+            periodStart = periodStart.replace("-","");
+            String period = periodStart.substring(0, periodStart.length()-2);
             taxInfo.setPeriod(period);
         }
         // 征收机关zsjg

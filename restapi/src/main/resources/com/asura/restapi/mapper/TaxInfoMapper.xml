@@ -23,12 +23,17 @@ INSERT INTO tb_tax_info(foreign_id, source, item, tax_money, period, levying_dep
         #{dzsph,jdbcType=VARCHAR},#{szmc,jdbcType=VARCHAR},#{szdm,jdbcType=VARCHAR})
     </insert>
 
-    <update id="updateTaxStatus" >
-        UPDATE tb_tax_task t1 set t1.status = {status,jdbcType=INTEGER},t1.update_time = now()
-        where t1.task_id = #{task_id,jdbcType=VARCHAR}
-    </update>
-
-    <select id="queryTax" resultType="com.asura.restapi.model.dto.TaskDto">
-        SELECT * from tb_tax_task  where t1.task_id = #{task_id,jdbcType=VARCHAR}
+    <select id="queryTaxByUid" resultType="com.asura.restapi.model.dto.TaxInfo">
+SELECT t1.tax_money,t1.period,t1.income,t1.tax_unit from tb_tax_info t1
+where t1.foreign_id = (select max(id) from tb_tax_task t2 where
+t2.uid=#{uid,jdbcType=VARCHAR} and t2.status ='1')
+order by t1.id desc;
+    </select>
+    
+    <select id="queryTaxUnitAndMoenyByUid" resultType="com.asura.restapi.model.dto.TaxInfo">
+        SELECT tax_unit,truncate(sum(tax_money),2) as tax_money,max(t1.period) as temp_end,min(t1.period) as temp_start from tb_tax_info t1
+where t1.foreign_id = (select max(id) from tb_tax_task t2 where
+t2.uid=#{uid,jdbcType=VARCHAR} and t2.status ='1')GROUP BY tax_unit
+order by temp_start
     </select>
 </mapper>

@@ -32,8 +32,9 @@ public class TaskService {
      * @param taskId 任务ID
      * @return
      */
-    public int updateTaskStatus(Integer status, String taskId){
-        return taskMapper.updateTaskStatus(status,taskId);
+    public int updateTaskStatus(Integer status, String taskId,String desc){
+
+        return taskMapper.updateTaskStatus(status,taskId,desc);
     }
 
     /**
