@@ -19,7 +19,7 @@ spring:
             force: true
     datasource:
         name: datasource
-        driverClassName: com.mysql.jdbc.Driver
+        driverClassName: com.mysql.cj.jdbc.Driver
         url: jdbc:mysql://127.0.0.1:3306/db_tax?serverTimezone=Hongkong&useSSL=false&characterEncoding=utf-8
         username: taxtest
         password: lcs123456A?

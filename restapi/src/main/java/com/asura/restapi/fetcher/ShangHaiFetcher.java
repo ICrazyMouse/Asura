@@ -62,7 +62,7 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
     @Override
     public Result pageInit(TaxUser taxUser) {
         logger.info("shanghai pageInit:start");
-
+        logger.info(JSONObject.toJSONString(taxUser));
         long start = System.currentTimeMillis();
         Result result = new Result();
         //初始化
@@ -114,17 +114,24 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
      */
     @Override
     public Result login(TaxUser taxUser) {
-        System.setProperty ("jsse.enableSNIExtension", "false");
         String taskId = taxUser.getTaskId();
         logger.info("shanghai login:start" + taskId);
+
+        logger.info(JSONObject.toJSONString(taxUser));
         long start = System.currentTimeMillis();
         Result result = new Result();
         String rsaPublicKey = (String)getCacheRsaPublicKey(taskId);
+        logger.info("login taskId:" + taskId + ",rsaPublicKey" + rsaPublicKey);
         //初始化
         BasicCookieStore cookieStore = (BasicCookieStore)getCachedLoginCookie(taskId);
+
+        logger.info(JSONObject.toJSONString(cookieStore));
         LoginContext loginContext = createLoginContext(cookieStore);
         // 验证验证码
         String checkYzmUrlR = CHECK_CATTCHA_URL + taxUser.getCaptcha();
+
+        logger.info("checkYzmUrlR:" + checkYzmUrlR);
+
         loginContext.setUri(checkYzmUrlR);
         String checkResult = doPost(loginContext);
         logger.info(taskId + "验证验证码结果**************"+ checkResult);
@@ -251,7 +258,10 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
                 //保存入库
                 saveTaxInfo(taxInfo);
             });
-
+            //
+            String logoutUrl = "https://gr.tax.sh.gov.cn/portals/web/signout";
+            loginContext.setUri(logoutUrl);
+            doGet(loginContext);
             clearMemcache(taskId);
             setTaskStatusSuccess(taskId,"成功");
             result.setMessage("获取成功");
@@ -267,7 +277,8 @@ public class ShangHaiFetcher extends BaseFetcher implements IFetcher{
     public Result refreshCaptcha(TaxUser taxUser) {
         Result result = new Result();
         String taskId = taxUser.getTaskId();
-        logger.info("shanghai login:start" + taskId);
+        logger.info("shanghai refreshCaptcha:start" + taskId);
+        logger.info(JSONObject.toJSONString(taxUser));
         long start = System.currentTimeMillis();
         //初始化
         BasicCookieStore cookieStore = (BasicCookieStore)getCachedLoginCookie(taskId);
